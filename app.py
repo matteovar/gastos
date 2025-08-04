@@ -3,13 +3,21 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import json
+import threading
+import api  # <-- importa seu bot
+
+# Inicia o bot em thread separada
+def iniciar_bot():
+    api.main()
+
+threading.Thread(target=iniciar_bot, daemon=True).start()
 
 # Autenticação e leitura da planilha
 @st.cache_data(ttl=60)  # Cache por 60 segundos
 def carregar_dados():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-    # Carrega as credenciais do secrets (Streamlit Cloud)
+    # Carrega as credenciais do secrets
     credentials_dict = json.loads(st.secrets["google"]["credentials"])
     spreadsheet_id = st.secrets["google"]["spreadsheet_id"]
 
