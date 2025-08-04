@@ -18,13 +18,15 @@ except Exception as e:
 def classificar_categoria(texto):
     return modelo.predict([texto])[0] if modelo else "desconhecida"
 
-# Detectar se é entrada ou despesa
+# Detectar tipo: Entrada, Despesa ou Investimento
 def detectar_tipo(descricao):
-    entradas = ["salario", "pix", "recebido", "investimento", "depósito", "rendimento", "transferência"]
-    for palavra in entradas:
-        if palavra in descricao.lower():
-            return "Entrada"
-    return "Despesa"
+    descricao = descricao.lower()
+    if any(p in descricao for p in ["investimento", "ação", "tesouro", "renda fixa", "poupança", "selic", "itau", "xp"]):
+        return "Investimento"
+    elif any(p in descricao for p in ["salario", "pix", "recebido", "depósito", "rendimento", "transferência"]):
+        return "Entrada"
+    else:
+        return "Despesa"
 
 # Google Sheets setup
 try:
@@ -85,14 +87,11 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def run_bot():
     try:
         asyncio.set_event_loop(asyncio.new_event_loop())
-        
         TOKEN = st.secrets.telegram.token
         if not TOKEN:
             raise ValueError("Missing Telegram token")
-            
         application = ApplicationBuilder().token(TOKEN).build()
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
-        
         print("🤖 Bot started polling...")
         application.run_polling(stop_signals=[])
     except Exception as e:

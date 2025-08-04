@@ -18,7 +18,7 @@ frases = [
     "café da manhã 35", "padaria 28", "confeitaria 45", "sorvete 18",
     "pizzaria 90", "hamburguer 38", "sushi 120", "lanchonete 32",
     "açai 24", "boteco 55", "cafeteria 42", "food truck 30",
-    "bar 68", "chopp 28", "vinho 85", "cerveja 42", "whisky 180",
+    "bar 68", "chopp 28", "vinho 85","pandan 50", "deliburguer 120" ,"cerveja 42", "whisky 180",
     
     # Transporte
     "uber 32", "taxi 45", "gasolina 280", "estacionamento 25",
@@ -96,7 +96,30 @@ frases = [
     # Presentes
     "presente aniversario 180", "natal 500", "dia das maes 250",
     "casamento 400", "namorados 300", "chá bebê 150",
-    "formatura 350", "dia dos pais 200", "amigo secreto 80"
+    "formatura 350", "dia dos pais 200", "amigo secreto 80",
+
+    #investimento
+    "investimento itau 3000", "investi 1500", "apliquei em tesouro direto 1200",
+    "ações petrobras 750", "bitcoin 2200", "cripto 1800", "compra de selic 950",
+    "renda fixa 3000", "xp investimentos 2700", "investimento variável 1600",
+    "apliquei dinheiro 2400", "investimento em ações 850", "tesouro selic 1100",
+    "bdrs apple 1900", "compra de ações 900", "cdb banco inter 1200",
+    "inv petrobras 850", "investimentos digitais 1600", "aplicação 1350", "tesouro direto 1100",
+
+    # Entradas
+    "salario 4500", "pix recebido 200", "recebi do cliente 390", "transferencia do banco 250",
+    "ganhei um pix 100", "depósito da mãe 300", "pagamento da empresa 5200",
+    "salario da firma 4700", "pix 150", "transf bradesco 180",
+    "salario recebido 3900", "pix salario 3200", "deposito inter 420",
+    "transferência santander 680", "cliente pagou 130", "entrada de dinheiro 850",
+    "rendimento da poupança 180", "dinheiro recebido 140", "recebido via pix 300", "bonus mensal 900",
+
+    # Cabelo
+    "cabelo 120", "corte masculino 80", "barbeiro 50", "tintura 90", 
+    "progressiva 250", "spa 300", "unha feita 80", "depilacao a laser 180",
+    "cosméticos 190", "perfume 310", "maquiagem 240", "hidratante 60",
+    "cremes faciais 70", "estética 140", "salao de beleza 110", "escova progressiva 230",
+    "tratamento capilar 220", "manicure 75", "barbearia 60", "barba e cabelo 90",
 ]
 
 categorias = [
@@ -107,7 +130,7 @@ categorias = [
     *["Vestuário"]*17,
     
     # Alimentação/Bebidas (23)
-    *["Alimentação/Bebidas"]*23,
+    *["Alimentação/Bebidas"]*25,
     
     # Transporte (20)
     *["Transporte"]*20,
@@ -140,5 +163,14 @@ categorias = [
     *["Financeiro"]*12,
     
     # Presentes (9)
-    *["Presentes"]*9
+    *["Presentes"]*9,
+
+    # Investimentos (20)
+    *["Investimento"] * 20,
+
+    # Entradas (20)
+    *["Entrada"] * 20,
+
+    # Cabelo (20)
+    *["Cuidados Pessoais"] * 20
 ]

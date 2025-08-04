@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import threading
-import api  # seu api.py com o bot
+import api  # importa o bot
 
 @st.cache_data(ttl=300)
 def carregar_dados():
@@ -24,16 +24,16 @@ def start_bot():
     except Exception as e:
         st.error(f"Bot error: {e}")
 
-st.title("📊 Expense Dashboard")
+st.title("📊 Painel Financeiro")
 
-# Bot thread
+# Iniciar bot em thread separada
 if not hasattr(st.session_state, 'bot_thread'):
     if "telegram" in st.secrets and "token" in st.secrets["telegram"]:
         st.session_state.bot_thread = threading.Thread(target=start_bot, daemon=True)
         st.session_state.bot_thread.start()
-        st.success("🤖 Bot started successfully!")
+        st.success("🤖 Bot iniciado com sucesso!")
     else:
-        st.error("❌ Missing Telegram token in secrets.toml")
+        st.error("❌ Faltando token do Telegram em secrets.toml")
 
 # Botão para atualizar dados
 if st.button("🔄 Atualizar dados"):
@@ -47,10 +47,9 @@ if "google" in st.secrets:
         df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
 
         if "Tipo" in df.columns:
-            st.subheader("📊 Análise Financeira")
-
             despesas = df[df["Tipo"] == "Despesa"]
             entradas = df[df["Tipo"] == "Entrada"]
+            investimentos = df[df["Tipo"] == "Investimento"]
 
             st.subheader("📈 Despesas por Categoria")
             st.bar_chart(despesas.groupby("Categoria")["Valor"].sum())
@@ -58,14 +57,18 @@ if "google" in st.secrets:
             st.subheader("📥 Entradas por Categoria")
             st.bar_chart(entradas.groupby("Categoria")["Valor"].sum())
 
-            cols = st.columns(3)
+            st.subheader("💼 Investimentos por Categoria")
+            st.bar_chart(investimentos.groupby("Categoria")["Valor"].sum())
+
+            cols = st.columns(4)
             cols[0].metric("💸 Total Despesas", f"R$ {despesas['Valor'].sum():.2f}")
             cols[1].metric("📥 Total Entradas", f"R$ {entradas['Valor'].sum():.2f}")
-            cols[2].metric("💰 Saldo", f"R$ {(entradas['Valor'].sum() - despesas['Valor'].sum()):.2f}")
+            cols[2].metric("💼 Total Investimentos", f"R$ {investimentos['Valor'].sum():.2f}")
+            cols[3].metric("💰 Saldo Líquido", f"R$ {(entradas['Valor'].sum() - despesas['Valor'].sum()):.2f}")
         else:
             st.dataframe(df)
-            st.warning("⚠️ A planilha precisa de uma coluna chamada 'Tipo'.")
+            st.warning("⚠️ Sua planilha precisa conter a coluna 'Tipo'.")
     else:
-        st.info("No data found in spreadsheet")
+        st.info("🔎 Nenhum dado encontrado na planilha.")
 else:
-    st.error("❌ Missing Google Sheets configuration")
+    st.error("❌ Falta configuração do Google Sheets.")
