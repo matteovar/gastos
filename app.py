@@ -4,6 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import os
 from dotenv import load_dotenv
+import json
 
 # Carregar variáveis do .env (se usar)
 load_dotenv()
@@ -14,7 +15,7 @@ SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 @st.cache_data(ttl=60)  # atualiza cache a cada 60 segundos
 def carregar_dados():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name('credenciais.json', scope)
+    credentials_dict = json.loads(os.getenv("GOOGLE_CREDENTIALS_JSON"))
     client = gspread.authorize(creds)
 
     planilha = client.open_by_key(SPREADSHEET_ID)
