@@ -16,7 +16,7 @@ frases = [
     # Alimentação/Bebidas
     "restaurante 85", "delivery 68", "ifood 72", "almoço 42", "jantar 78",
     "café da manhã 35", "padaria 28", "confeitaria 45", "sorvete 18",
-    "pizzaria 90", "hamburguer 38", "sushi 120", "lanchonete 32",
+    "pizzaria 90", "pizza 120", "hamburguer 38", "sushi 120", "lanchonete 32",
     "açai 24", "boteco 55", "cafeteria 42", "food truck 30",
     "bar 68", "chopp 28", "vinho 85","pandan 50", "deliburguer 120" ,"cerveja 42", "whisky 180",
     
@@ -130,7 +130,7 @@ categorias = [
     *["Vestuário"]*17,
     
     # Alimentação/Bebidas (23)
-    *["Alimentação/Bebidas"]*25,
+    *["Alimentação/Bebidas"]*26,
     
     # Transporte (20)
     *["Transporte"]*20,
