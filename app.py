@@ -27,7 +27,7 @@ def carregar_dados():
         st.error(f"Erro ao carregar dados da planilha: {e}")
         return pd.DataFrame()
 
-# Inicia o bot do Telegram uma única vez por sessão
+
 if "bot_rodando" not in st.session_state:
     st.session_state.bot_rodando = True
 
@@ -41,6 +41,7 @@ if "bot_rodando" not in st.session_state:
     st.success("🤖 Bot do Telegram iniciado com sucesso!")
 else:
     st.info("🤖 Bot já está rodando.")
+
 
 # Interface principal do Streamlit
 st.title("📊 Dashboard de Gastos Pessoais")
