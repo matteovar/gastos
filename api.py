@@ -6,6 +6,8 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
 from dotenv import load_dotenv
+import json
+import streamlit as st
 
 load_dotenv()
 
@@ -15,9 +17,11 @@ modelo = joblib.load('modelo_financas.pkl')
 def classificar_categoria(texto):
     return modelo.predict([texto])[0]
 
+credentials_dict = json.loads(st.secrets["google"]["credentials"])
+
 # --- Configuração Google Sheets ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name('credenciais.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
 client = gspread.authorize(creds)
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 planilha = client.open_by_key(SPREADSHEET_ID)
