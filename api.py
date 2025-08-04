@@ -1,6 +1,7 @@
 import re
 import joblib
-from telegram.ext import Updater, MessageHandler, filters, CallbackContextfrom telegram import Update
+from telegram.ext import Updater, MessageHandler, filters, CallbackContext
+from telegram import Update
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
