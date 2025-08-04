@@ -2,30 +2,29 @@ import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
-import os
-from dotenv import load_dotenv
 import json
 
-# Carregar variáveis do .env (se usar)
-load_dotenv()
-
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-
-# Autenticação Google Sheets
-@st.cache_data(ttl=60)  # atualiza cache a cada 60 segundos
+# Autenticação e leitura da planilha
+@st.cache_data(ttl=60)  # Cache por 60 segundos
 def carregar_dados():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    credentials_dict = json.loads(os.getenv("GOOGLE_CREDENTIALS_JSON"))
+
+    # Carrega as credenciais do secrets (Streamlit Cloud)
+    credentials_dict = json.loads(st.secrets["google"]["credentials"])
+    spreadsheet_id = st.secrets["google"]["spreadsheet_id"]
+
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
     client = gspread.authorize(creds)
 
-    planilha = client.open_by_key(SPREADSHEET_ID)
+    planilha = client.open_by_key(spreadsheet_id)
     aba = planilha.sheet1
 
     dados = aba.get_all_records()
     df = pd.DataFrame(dados)
     return df
 
-st.title("Dashboard de Gastos")
+# Interface do Streamlit
+st.title("📊 Dashboard de Gastos")
 
 df = carregar_dados()
 
@@ -34,5 +33,10 @@ if df.empty:
 else:
     st.dataframe(df)
 
-    # Mostrar alguns gráficos simples
-    st.bar_chart(df.groupby("Categoria")["Valor"].sum())
+    # Gera gráfico de gastos por categoria
+    if "Categoria" in df.columns and "Valor" in df.columns:
+        df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
+        st.subheader("💸 Gastos por Categoria")
+        st.bar_chart(df.groupby("Categoria")["Valor"].sum())
+    else:
+        st.warning("Colunas 'Categoria' e 'Valor' não encontradas na planilha.")
