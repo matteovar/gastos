@@ -1,15 +1,11 @@
 import re
 import joblib
-from telegram.ext import Updater, MessageHandler, filters, CallbackContext
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 from telegram import Update
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import os
-from dotenv import load_dotenv
 import json
 import streamlit as st
-
-load_dotenv()
 
 # --- Carrega o modelo treinado ---
 modelo = joblib.load('modelo_financas.pkl')
@@ -17,10 +13,10 @@ modelo = joblib.load('modelo_financas.pkl')
 def classificar_categoria(texto):
     return modelo.predict([texto])[0]
 
+# --- Configuração Google Sheets ---
 credentials_dict = json.loads(st.secrets["google"]["credentials"])
 spreadsheet_id = st.secrets["google"]["spreadsheet_id"]
 
-# --- Configuração Google Sheets ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
 client = gspread.authorize(creds)
@@ -47,9 +43,10 @@ def salvar_despesa(descricao, categoria, valor):
     aba.append_row(linha)
 
 # --- Função que responde mensagens no Telegram ---
-def responder(update: Update, context: CallbackContext):
+async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text
     descricao, valor = extrair_dados(texto)
+    
     if descricao and valor is not None:
         categoria = classificar_categoria(texto)
         salvar_despesa(descricao, categoria, valor)
@@ -61,22 +58,26 @@ def responder(update: Update, context: CallbackContext):
         )
     else:
         resposta = "❌ Não entendi. Por favor, envie no formato: descrição + valor (ex: 'água de coco 14')"
-    update.message.reply_text(resposta)
+    
+    await update.message.reply_text(resposta)
 
 # --- Função principal que inicia o bot ---
 def main():
-    TOKEN = st.secrets.get("token") or os.getenv("TOKEN")
-
-    print(f"TOKEN carregado: {TOKEN}")
+    TOKEN = st.secrets.token  # Acessa diretamente o token definido no secrets.toml
 
     if not TOKEN:
-        raise ValueError("❌ TOKEN do Telegram não foi encontrado! Verifique seu secrets ou .env.")
+        raise ValueError("❌ TOKEN do Telegram não foi encontrado! Verifique seu secrets.toml")
 
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+    print(f"✅ TOKEN carregado: {TOKEN[:5]}...")
 
-    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
+    # Configuração do bot usando a nova API v20.x
+    application = ApplicationBuilder().token(TOKEN).build()
+    
+    # Adiciona handler para mensagens de texto
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
     
     print("🤖 Bot rodando...")
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
