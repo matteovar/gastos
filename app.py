@@ -42,8 +42,12 @@ if st.button("🔄 Atualizar dados"):
 # Carregar e mostrar dados
 if "google" in st.secrets:
     df = carregar_dados()
+    
+    st.set_page_config(layout="wide")
 
     if not df.empty:
+        st.dataframe(df)
+        
         df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
 
         if "Tipo" in df.columns:
