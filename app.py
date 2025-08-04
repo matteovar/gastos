@@ -47,22 +47,24 @@ if "google" in st.secrets:
 
     if not df.empty:
         st.dataframe(df)
-        
+
         df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
 
         if "Tipo" in df.columns:
             despesas = df[df["Tipo"] == "Despesa"]
             entradas = df[df["Tipo"] == "Entrada"]
             investimentos = df[df["Tipo"] == "Investimento"]
-
-            st.subheader("📈 Despesas por Categoria")
-            st.bar_chart(despesas.groupby("Categoria")["Valor"].sum())
-
-            st.subheader("📥 Entradas por Categoria")
-            st.bar_chart(entradas.groupby("Categoria")["Valor"].sum())
-
-            st.subheader("💼 Investimentos por Categoria")
-            st.bar_chart(investimentos.groupby("Categoria")["Valor"].sum())
+            col = st.columns(3)
+            with col[0]:
+    
+                st.subheader("📈 Despesas por Categoria")
+                st.bar_chart(despesas.groupby("Categoria")["Valor"].sum())
+            with col[1]:
+                st.subheader("📥 Entradas por Categoria")
+                st.bar_chart(entradas.groupby("Categoria")["Valor"].sum())
+            with col[2]:
+                st.subheader("💼 Investimentos por Categoria")
+                st.bar_chart(investimentos.groupby("Categoria")["Valor"].sum())
 
             cols = st.columns(4)
             cols[0].metric("💸 Total Despesas", f"R$ {despesas['Valor'].sum():.2f}")
