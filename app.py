@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import threading
-import api  # seu arquivo api.py com o bot
+import api  # seu api.py com o bot
 
 @st.cache_data(ttl=300)
 def carregar_dados():
@@ -26,7 +26,7 @@ def start_bot():
 
 st.title("📊 Expense Dashboard")
 
-# Iniciar bot numa thread daemon (se token existir)
+# Bot thread
 if not hasattr(st.session_state, 'bot_thread'):
     if "telegram" in st.secrets and "token" in st.secrets["telegram"]:
         st.session_state.bot_thread = threading.Thread(target=start_bot, daemon=True)
@@ -35,7 +35,12 @@ if not hasattr(st.session_state, 'bot_thread'):
     else:
         st.error("❌ Missing Telegram token in secrets.toml")
 
-# Mostrar dados do Google Sheets
+# Botão para atualizar dados
+if st.button("🔄 Atualizar dados"):
+    st.cache_data.clear()
+    st.experimental_rerun()
+
+# Carregar e mostrar dados
 if "google" in st.secrets:
     df = carregar_dados()
 
