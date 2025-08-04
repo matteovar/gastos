@@ -5,25 +5,26 @@ from telegram import Update
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
+import asyncio
+from threading import Thread
+import time
 
-# --- Carrega o modelo treinado ---
+# Load ML model
 try:
     modelo = joblib.load('modelo_financas.pkl')
-    print("✅ Modelo carregado com sucesso!")
+    print("✅ Model loaded successfully")
 except Exception as e:
-    print(f"❌ Erro ao carregar modelo: {e}")
-    modelo = None  # evita erro em classificar_categoria
+    print(f"❌ Error loading model: {e}")
+    modelo = None
 
 def classificar_categoria(texto):
-    if modelo is not None:
-        return modelo.predict([texto])[0]
-    return "desconhecida"
+    return modelo.predict([texto])[0] if modelo else "desconhecida"
 
-# --- Configuração Google Sheets ---
+# Google Sheets setup
 try:
     credentials_dict = dict(st.secrets["google"]["credentials"])
     spreadsheet_id = st.secrets["google"]["spreadsheet_id"]
-
+    
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
@@ -32,80 +33,71 @@ try:
     client = gspread.authorize(creds)
     planilha = client.open_by_key(spreadsheet_id)
     aba = planilha.sheet1
-    print("✅ Conectado ao Google Sheets")
+    print("✅ Connected to Google Sheets")
 except Exception as e:
-    print(f"❌ Erro ao configurar Google Sheets: {e}")
-    aba = None  # evita exceção no salvar_despesa
+    print(f"❌ Google Sheets error: {e}")
+    aba = None
 
-# --- Função para extrair descrição e valor ---
 def extrair_dados(texto):
     match = re.match(r"(.+?)\s+(\d+(?:[\.,]\d{1,2})?)", texto.lower())
     if match:
-        descricao = match.group(1).strip()
-        valor_str = match.group(2).replace(",", ".")
         try:
-            valor = float(valor_str)
+            descricao = match.group(1).strip()
+            valor = float(match.group(2).replace(",", "."))
             return descricao, valor
         except ValueError:
-            print("❌ Erro ao converter valor para float")
-            return None, None
-    print("❌ Regex não bateu com o texto")
+            pass
     return None, None
 
-# --- Função para salvar despesa no Google Sheets ---
 def salvar_despesa(descricao, categoria, valor):
-    if aba is None:
-        print("❌ Planilha não configurada")
-        return
-    try:
-        linha = [descricao, categoria, valor]
-        aba.append_row(linha)
-        print(f"✅ Despesa registrada: {linha}")
-    except Exception as e:
-        print(f"❌ Erro ao salvar na planilha: {e}")
+    if aba:
+        try:
+            aba.append_row([descricao, categoria, valor])
+            print(f"✅ Saved: {descricao} - {valor}")
+        except Exception as e:
+            print(f"❌ Save error: {e}")
 
-# --- Função que responde mensagens no Telegram ---
 async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         texto = update.message.text
-        print(f"📩 Mensagem recebida: {texto}")
-
         descricao, valor = extrair_dados(texto)
-
-        if descricao and valor is not None:
+        
+        if descricao and valor:
             categoria = classificar_categoria(texto)
             salvar_despesa(descricao, categoria, valor)
-            resposta = (
-                f"✅ Registro adicionado!\n"
-                f"📝 Descrição: {descricao}\n"
-                f"📦 Categoria: {categoria}\n"
-                f"💸 Valor: R$ {valor:.2f}"
+            await update.message.reply_text(
+                f"✅ Added!\n"
+                f"📝 {descricao}\n"
+                f"📦 {categoria}\n"
+                f"💸 R$ {valor:.2f}"
             )
         else:
-            resposta = "❌ Formato inválido. Use: 'descrição valor' (ex: 'mercado 150.50')"
-
-        await update.message.reply_text(resposta)
-
+            await update.message.reply_text("❌ Use: 'description value' (ex: 'market 150.50')")
     except Exception as e:
-        print(f"❌ Erro ao processar mensagem: {e}")
-        await update.message.reply_text("❌ Ocorreu um erro ao processar sua mensagem")
+        print(f"❌ Message error: {e}")
+        await update.message.reply_text("❌ Processing error")
 
-# --- Função principal que inicia o bot ---
-def main():
+def run_bot():
     try:
         TOKEN = st.secrets.telegram.token
-
         if not TOKEN:
-            raise ValueError("Token do Telegram não encontrado em st.secrets.telegram.token")
-
-        print(f"✅ TOKEN carregado: {TOKEN[:5]}...")
-
+            raise ValueError("Missing Telegram token")
+            
         application = ApplicationBuilder().token(TOKEN).build()
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
-
-        print("🤖 Bot rodando com polling...")
-        application.run_polling(allowed_updates=Update.ALL_TYPES)
-
+        
+        print("🤖 Bot started polling...")
+        application.run_polling()
     except Exception as e:
-        print(f"❌ Erro fatal ao iniciar o bot: {e}")
+        print(f"❌ Bot crashed: {e}")
         raise
+
+def main():
+    print("🔍 Starting bot thread...")
+    bot_thread = Thread(target=run_bot, daemon=True)
+    bot_thread.start()
+    
+    # Keep thread alive
+    while True:
+        time.sleep(10)
+        print("🤖 Bot still running...")
