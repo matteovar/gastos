@@ -38,7 +38,12 @@ if not hasattr(st.session_state, 'bot_thread'):
 # Botão para atualizar dados
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
-    st.experimental_rerun()
+    # Para evitar erro, chame o rerun dentro de um try-except
+    try:
+        st.experimental_rerun()
+    except RuntimeError:
+        pass
+
 
 # Carregar e mostrar dados
 if "google" in st.secrets:
