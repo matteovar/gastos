@@ -1,7 +1,6 @@
 import re
 import joblib
-from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
-from telegram import Update
+from telegram.ext import Updater, MessageHandler, filters, CallbackContextfrom telegram import Update
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
@@ -75,8 +74,8 @@ def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, responder))
-
+    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
+    
     print("🤖 Bot rodando...")
     updater.start_polling()
     updater.idle()
