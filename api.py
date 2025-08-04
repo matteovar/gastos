@@ -6,8 +6,6 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
 import asyncio
-from threading import Thread
-import time
 
 # Load ML model
 try:
@@ -76,7 +74,7 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def run_bot():
     try:
-        # Create new event loop for this thread
+        # Criar event loop novo para a thread
         asyncio.set_event_loop(asyncio.new_event_loop())
         
         TOKEN = st.secrets.telegram.token
@@ -87,17 +85,11 @@ def run_bot():
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
         
         print("🤖 Bot started polling...")
-        application.run_polling()
+        # Aqui a mudança importante: passar stop_signals para evitar erro de signal handler em thread
+        application.run_polling(stop_signals=[])
     except Exception as e:
         print(f"❌ Bot crashed: {e}")
         raise
 
 def main():
-    print("🔍 Starting bot thread...")
-    bot_thread = Thread(target=run_bot, daemon=True)
-    bot_thread.start()
-    
-    # Keep thread alive
-    while True:
-        time.sleep(10)
-        print("🤖 Bot still running...")
+    run_bot()  # só chama run_bot, sem criar thread nem loop infinito aqui

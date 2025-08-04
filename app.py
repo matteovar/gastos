@@ -3,8 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import threading
-import api
-import time
+import api  # seu arquivo api.py com o bot
 
 @st.cache_data(ttl=300)
 def carregar_dados():
@@ -25,31 +24,29 @@ def start_bot():
     except Exception as e:
         st.error(f"Bot error: {e}")
 
-# App UI
 st.title("📊 Expense Dashboard")
 
-# Bot status check
+# Iniciar bot numa thread daemon (se token existir)
 if not hasattr(st.session_state, 'bot_thread'):
-    if hasattr(st.secrets, "telegram") and hasattr(st.secrets.telegram, "token"):
+    if "telegram" in st.secrets and "token" in st.secrets["telegram"]:
         st.session_state.bot_thread = threading.Thread(target=start_bot, daemon=True)
         st.session_state.bot_thread.start()
         st.success("🤖 Bot started successfully!")
     else:
         st.error("❌ Missing Telegram token in secrets.toml")
 
-# Data display
-if hasattr(st.secrets, "google"):
+# Mostrar dados do Google Sheets
+if "google" in st.secrets:
     df = carregar_dados()
-    
+
     if not df.empty:
         st.dataframe(df)
-        
-        if "Valor" in df.columns:
+
+        if "Valor" in df.columns and "Categoria" in df.columns:
             df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
-            
             st.subheader("📈 Expenses by Category")
             st.bar_chart(df.groupby("Categoria")["Valor"].sum())
-            
+
             cols = st.columns(3)
             cols[0].metric("Total", f"R$ {df['Valor'].sum():.2f}")
             cols[1].metric("Average", f"R$ {df['Valor'].mean():.2f}")
