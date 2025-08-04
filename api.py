@@ -65,13 +65,18 @@ def responder(update: Update, context: CallbackContext):
 
 # --- Função principal que inicia o bot ---
 def main():
-    TOKEN = os.getenv("TOKEN")
-    updater = Updater(TOKEN, use_context=True)
+    TOKEN = st.secrets.get("token") or os.getenv("TOKEN")
 
+    print(f"TOKEN carregado: {TOKEN}")
+
+    if not TOKEN:
+        raise ValueError("❌ TOKEN do Telegram não foi encontrado! Verifique seu secrets ou .env.")
+
+    updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
+
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, responder))
 
-    print("Bot rodando...")
+    print("🤖 Bot rodando...")
     updater.start_polling()
     updater.idle()
-
