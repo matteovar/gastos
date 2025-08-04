@@ -18,13 +18,13 @@ def classificar_categoria(texto):
     return modelo.predict([texto])[0]
 
 credentials_dict = json.loads(st.secrets["google"]["credentials"])
+spreadsheet_id = st.secrets["google"]["spreadsheet_id"]
 
 # --- Configuração Google Sheets ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
 client = gspread.authorize(creds)
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-planilha = client.open_by_key(SPREADSHEET_ID)
+planilha = client.open_by_key(spreadsheet_id)
 aba = planilha.sheet1  # primeira aba
 
 # --- Função para extrair descrição e valor ---
