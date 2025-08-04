@@ -28,14 +28,16 @@ def start_bot():
 # App UI
 st.title("📊 Expense Dashboard")
 
-if not st.session_state.get('bot_started'):
+# Bot status check
+if not hasattr(st.session_state, 'bot_thread'):
     if hasattr(st.secrets, "telegram") and hasattr(st.secrets.telegram, "token"):
-        threading.Thread(target=start_bot, daemon=True).start()
-        st.session_state.bot_started = True
-        st.success("🤖 Bot started!")
+        st.session_state.bot_thread = threading.Thread(target=start_bot, daemon=True)
+        st.session_state.bot_thread.start()
+        st.success("🤖 Bot started successfully!")
     else:
-        st.error("❌ Missing Telegram token in secrets")
+        st.error("❌ Missing Telegram token in secrets.toml")
 
+# Data display
 if hasattr(st.secrets, "google"):
     df = carregar_dados()
     
@@ -45,7 +47,7 @@ if hasattr(st.secrets, "google"):
         if "Valor" in df.columns:
             df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
             
-            st.subheader("📈 By Category")
+            st.subheader("📈 Expenses by Category")
             st.bar_chart(df.groupby("Categoria")["Valor"].sum())
             
             cols = st.columns(3)
@@ -53,6 +55,6 @@ if hasattr(st.secrets, "google"):
             cols[1].metric("Average", f"R$ {df['Valor'].mean():.2f}")
             cols[2].metric("Entries", len(df))
     else:
-        st.info("No data found")
+        st.info("No data found in spreadsheet")
 else:
-    st.error("❌ Missing Google Sheets config")
+    st.error("❌ Missing Google Sheets configuration")

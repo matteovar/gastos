@@ -25,10 +25,7 @@ try:
     credentials_dict = dict(st.secrets["google"]["credentials"])
     spreadsheet_id = st.secrets["google"]["spreadsheet_id"]
     
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
     client = gspread.authorize(creds)
     planilha = client.open_by_key(spreadsheet_id)
@@ -79,6 +76,9 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def run_bot():
     try:
+        # Create new event loop for this thread
+        asyncio.set_event_loop(asyncio.new_event_loop())
+        
         TOKEN = st.secrets.telegram.token
         if not TOKEN:
             raise ValueError("Missing Telegram token")
