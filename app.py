@@ -69,8 +69,8 @@ if "google" in st.secrets:
             cols = st.columns(4)
             cols[0].metric("💸 Total Despesas", f"R$ {despesas['Valor'].sum():.2f}")
             cols[1].metric("📥 Total Entradas", f"R$ {entradas['Valor'].sum():.2f}")
-            cols[2].metric("💼 Total Investimentos", f"R$ {investimentos['Valor'].sum():.2f}")
-            cols[3].metric("💰 Saldo Líquido", f"R$ {(entradas['Valor'].sum() - despesas['Valor'].sum()):.2f}")
+            cols[2].metric("💰 Saldo Líquido", f"R$ {(entradas['Valor'].sum() - despesas['Valor'].sum()):.2f}")
+            cols[3].metric("💼 Total Investimentos", f"R$ {investimentos['Valor'].sum():.2f}")
         else:
             st.dataframe(df)
             st.warning("⚠️ Sua planilha precisa conter a coluna 'Tipo'.")
