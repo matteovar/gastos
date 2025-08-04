@@ -39,24 +39,32 @@ if not hasattr(st.session_state, 'bot_thread'):
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
 
-
-
 # Carregar e mostrar dados
 if "google" in st.secrets:
     df = carregar_dados()
 
     if not df.empty:
-        st.dataframe(df)
+        df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
 
-        if "Valor" in df.columns and "Categoria" in df.columns:
-            df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
-            st.subheader("📈 Expenses by Category")
-            st.bar_chart(df.groupby("Categoria")["Valor"].sum())
+        if "Tipo" in df.columns:
+            st.subheader("📊 Análise Financeira")
+
+            despesas = df[df["Tipo"] == "Despesa"]
+            entradas = df[df["Tipo"] == "Entrada"]
+
+            st.subheader("📈 Despesas por Categoria")
+            st.bar_chart(despesas.groupby("Categoria")["Valor"].sum())
+
+            st.subheader("📥 Entradas por Categoria")
+            st.bar_chart(entradas.groupby("Categoria")["Valor"].sum())
 
             cols = st.columns(3)
-            cols[0].metric("Total", f"R$ {df['Valor'].sum():.2f}")
-            cols[1].metric("Average", f"R$ {df['Valor'].mean():.2f}")
-            cols[2].metric("Entries", len(df))
+            cols[0].metric("💸 Total Despesas", f"R$ {despesas['Valor'].sum():.2f}")
+            cols[1].metric("📥 Total Entradas", f"R$ {entradas['Valor'].sum():.2f}")
+            cols[2].metric("💰 Saldo", f"R$ {(entradas['Valor'].sum() - despesas['Valor'].sum()):.2f}")
+        else:
+            st.dataframe(df)
+            st.warning("⚠️ A planilha precisa de uma coluna chamada 'Tipo'.")
     else:
         st.info("No data found in spreadsheet")
 else:

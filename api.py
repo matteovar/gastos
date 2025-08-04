@@ -18,6 +18,14 @@ except Exception as e:
 def classificar_categoria(texto):
     return modelo.predict([texto])[0] if modelo else "desconhecida"
 
+# Detectar se é entrada ou despesa
+def detectar_tipo(descricao):
+    entradas = ["salario", "pix", "recebido", "investimento", "depósito", "rendimento", "transferência"]
+    for palavra in entradas:
+        if palavra in descricao.lower():
+            return "Entrada"
+    return "Despesa"
+
 # Google Sheets setup
 try:
     credentials_dict = dict(st.secrets["google"]["credentials"])
@@ -44,11 +52,11 @@ def extrair_dados(texto):
             pass
     return None, None
 
-def salvar_despesa(descricao, categoria, valor):
+def salvar_despesa(descricao, categoria, valor, tipo):
     if aba:
         try:
-            aba.append_row([descricao, categoria, valor])
-            print(f"✅ Saved: {descricao} - {valor}")
+            aba.append_row([descricao, categoria, valor, tipo])
+            print(f"✅ Saved: {descricao} - {valor} ({tipo})")
         except Exception as e:
             print(f"❌ Save error: {e}")
 
@@ -59,22 +67,23 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         if descricao and valor:
             categoria = classificar_categoria(texto)
-            salvar_despesa(descricao, categoria, valor)
+            tipo = detectar_tipo(descricao)
+            salvar_despesa(descricao, categoria, valor, tipo)
             await update.message.reply_text(
-                f"✅ Added!\n"
+                f"✅ Adicionado!\n"
                 f"📝 {descricao}\n"
                 f"📦 {categoria}\n"
+                f"📊 {tipo}\n"
                 f"💸 R$ {valor:.2f}"
             )
         else:
-            await update.message.reply_text("❌ Use: 'description value' (ex: 'market 150.50')")
+            await update.message.reply_text("❌ Use: 'descrição valor' (ex: 'mercado 150.50')")
     except Exception as e:
         print(f"❌ Message error: {e}")
-        await update.message.reply_text("❌ Processing error")
+        await update.message.reply_text("❌ Erro ao processar")
 
 def run_bot():
     try:
-        # Criar event loop novo para a thread
         asyncio.set_event_loop(asyncio.new_event_loop())
         
         TOKEN = st.secrets.telegram.token
@@ -85,11 +94,10 @@ def run_bot():
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
         
         print("🤖 Bot started polling...")
-        # Aqui a mudança importante: passar stop_signals para evitar erro de signal handler em thread
         application.run_polling(stop_signals=[])
     except Exception as e:
         print(f"❌ Bot crashed: {e}")
         raise
 
 def main():
-    run_bot()  # só chama run_bot, sem criar thread nem loop infinito aqui
+    run_bot()
