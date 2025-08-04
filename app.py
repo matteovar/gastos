@@ -4,7 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import json
 import threading
-import api  # <-- importa seu bot
+import api  
 
 # Inicia o bot em thread separada
 def iniciar_bot():
